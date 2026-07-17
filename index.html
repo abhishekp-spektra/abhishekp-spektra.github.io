@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRG-2026-H1 · Abhishek Pathania · Blueprint Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#123056;
+    --paper-2:#0E2646;
+    --panel:#173C69;
+    --ink:#E8F0F5;
+    --muted:#7EA0C2;
+    --line:rgba(232,240,245,.18);
+    --line-strong:rgba(232,240,245,.32);
+    --grid-major:rgba(232,240,245,.09);
+    --grid-minor:rgba(232,240,245,.04);
+    --sepia:#F2C879;
+    --revision:#E4572E;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:15px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    position:relative;overflow-x:hidden;
+  }
+  h1,h2,h3,h4{font-family:var(--mono);font-weight:500;letter-spacing:.02em;text-transform:uppercase}
+  ::selection{background:var(--sepia);color:var(--paper)}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 40px}
+  .mono{font-family:var(--mono)}
+
+  /* ============ GRID CANVAS ============ */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:
+      linear-gradient(var(--grid-major) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid-major) 1px,transparent 1px),
+      linear-gradient(var(--grid-minor) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid-minor) 1px,transparent 1px);
+    background-size:80px 80px,80px 80px,16px 16px,16px 16px;
+    background-position:0 0,0 0,0 0,0 0;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(1200px 800px at 30% 20%,rgba(23,60,105,.4),transparent 65%);
+  }
+
+  /* corner crosshairs on the whole page */
+  .crosshair{
+    position:fixed;width:24px;height:24px;pointer-events:none;z-index:5;
+    border:1px solid var(--line-strong);
+  }
+  .crosshair::before,.crosshair::after{
+    content:"";position:absolute;background:var(--sepia);
+  }
+  .crosshair::before{left:50%;top:-4px;bottom:-4px;width:1px;transform:translateX(-50%)}
+  .crosshair::after{top:50%;left:-4px;right:-4px;height:1px;transform:translateY(-50%)}
+  .crosshair.tl{top:24px;left:24px}
+  .crosshair.tr{top:24px;right:24px}
+  .crosshair.bl{bottom:24px;left:24px}
+  .crosshair.br{bottom:24px;right:24px}
+
+  /* ============ TITLE BLOCK HEADER ============ */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:var(--paper-2);border-bottom:1px solid var(--line-strong);
+  }
+  .titleblock{
+    display:grid;grid-template-columns:auto 1fr auto auto;gap:0;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .titleblock > div{padding:12px 20px;border-right:1px solid var(--line)}
+  .titleblock > div:last-child{border-right:none}
+  .titleblock .k{color:var(--muted);font-size:9.5px;display:block;margin-bottom:2px;letter-spacing:.14em}
+  .titleblock .v{color:var(--ink);font-size:12px;letter-spacing:.02em}
+  .titleblock .v b{color:var(--sepia);font-weight:500}
+  .tb-scale{width:120px}
+  .tb-rev{width:100px;color:var(--revision) !important}
+  .tb-rev .v{color:var(--revision)}
+
+  /* ============ HERO ============ */
+  .hero{padding:72px 0 40px;position:relative}
+  .drawing-label{
+    display:inline-flex;align-items:center;gap:12px;
+    font-family:var(--mono);font-size:11px;color:var(--sepia);
+    letter-spacing:.18em;text-transform:uppercase;margin-bottom:32px;
+  }
+  .drawing-label::before,.drawing-label::after{content:"";width:32px;height:1px;background:var(--sepia)}
+  h1{
+    font-family:var(--mono);font-weight:700;
+    font-size:clamp(38px,5.6vw,68px);
+    letter-spacing:.005em;line-height:1.02;color:var(--ink);
+    margin-bottom:12px;
+    text-transform:uppercase;
+    position:relative;
+    display:inline-block;
+  }
+  h1 .a{color:var(--sepia)}
+  .hero-caption{
+    font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.06em;
+    margin-bottom:36px;
+  }
+  .hero-caption b{color:var(--ink);font-weight:500}
+  .thesis{
+    max-width:66ch;color:var(--muted);font-size:15.5px;line-height:1.7;
+    padding:20px 22px;background:rgba(232,240,245,.03);
+    border-left:1px solid var(--sepia);
+  }
+  .thesis b{color:var(--ink);font-weight:500}
+
+  /* ============ DIMENSION STRIP ============ */
+  .dim-strip{
+    margin-top:56px;position:relative;padding:16px 0 44px;
+    border-top:1px solid var(--line-strong);
+  }
+  .dim-strip::before{
+    content:"";position:absolute;left:0;right:0;top:16px;height:1px;background:var(--line-strong);
+  }
+  .dim-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding-top:24px;
+    position:relative;
+  }
+  .dim-cell{
+    padding:8px 20px 8px 0;position:relative;
+  }
+  .dim-cell:not(:last-child)::after{
+    content:"";position:absolute;right:0;top:8px;bottom:8px;width:1px;background:var(--line);
+  }
+  .dim-cell:not(:last-child){padding-right:32px}
+  .dim-cell:not(:first-child){padding-left:32px}
+  .dim-arrow{
+    position:absolute;top:-16px;left:0;right:20px;height:14px;
+    display:flex;align-items:center;
+  }
+  .dim-arrow::before{
+    content:"";flex:none;width:0;height:0;
+    border-right:6px solid var(--sepia);border-top:4px solid transparent;border-bottom:4px solid transparent;
+  }
+  .dim-arrow .line{
+    flex:1;height:1px;background:var(--sepia);
+  }
+  .dim-arrow::after{
+    content:"";flex:none;width:0;height:0;
+    border-left:6px solid var(--sepia);border-top:4px solid transparent;border-bottom:4px solid transparent;
+  }
+  .dim-arrow .num{
+    position:absolute;left:50%;top:-8px;transform:translateX(-50%);
+    background:var(--paper);padding:0 6px;font-family:var(--mono);font-size:10px;color:var(--sepia);
+    letter-spacing:.1em;
+  }
+  .dim-cell .val{
+    font-family:var(--mono);font-weight:700;font-size:52px;line-height:.95;color:var(--ink);
+    letter-spacing:-.005em;font-variant-numeric:tabular-nums;
+  }
+  .dim-cell .lab{
+    margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:.08em;text-transform:uppercase;line-height:1.4;
+  }
+
+  /* ============ TIMELINE - SCALE DRAWING ============ */
+  .scale-drawing{
+    margin-top:80px;padding:36px 40px 30px;
+    border:1px solid var(--line-strong);background:rgba(14,38,70,.6);
+    position:relative;
+  }
+  .scale-drawing::before{
+    content:"DWG-01 · TIMELINE, JAN-JUN 2026 · SCALE 1:30";
+    position:absolute;top:-9px;left:24px;background:var(--paper);
+    padding:0 12px;font-family:var(--mono);font-size:10px;color:var(--sepia);
+    letter-spacing:.14em;text-transform:uppercase;
+  }
+  .sd-legend{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px;
+  }
+  .ruler{
+    position:relative;height:100px;
+  }
+  .ruler-base{
+    position:absolute;left:0;right:0;top:44px;height:1px;background:var(--sepia);
+  }
+  .ruler-tick{
+    position:absolute;top:34px;width:1px;height:20px;background:var(--sepia);
+  }
+  .ruler-tick-major{
+    position:absolute;top:26px;width:1px;height:36px;background:var(--sepia);
+  }
+  .ruler-month{
+    position:absolute;top:74px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:11px;color:var(--sepia);letter-spacing:.14em;
+  }
+  .event-mark{
+    position:absolute;top:44px;transform:translate(-50%,-50%);
+    width:14px;height:14px;border:1.5px solid var(--sepia);background:var(--paper);
+    border-radius:50%;cursor:default;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .18s;
+  }
+  .event-mark::before{
+    content:"";width:5px;height:5px;background:var(--sepia);border-radius:50%;
+  }
+  .event-mark:hover{transform:translate(-50%,-50%) scale(1.4);z-index:5}
+  .event-mark.ip{border-color:var(--revision);width:16px;height:16px}
+  .event-mark.ip::before{background:var(--revision);width:6px;height:6px}
+  .em-callout{
+    position:absolute;top:-56px;left:50%;transform:translateX(-50%);
+    background:var(--paper-2);border:1px solid var(--sepia);
+    padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--ink);
+    white-space:nowrap;letter-spacing:.04em;
+    opacity:0;visibility:hidden;transition:opacity .15s;pointer-events:none;z-index:6;
+  }
+  .em-callout::after{
+    content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);
+    width:1px;height:8px;background:var(--sepia);
+  }
+  .em-callout b{color:var(--sepia);font-weight:500}
+  .em-callout span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+  .event-mark:hover .em-callout{opacity:1;visibility:visible}
+
+  /* ============ SECTION HEADERS ============ */
+  section{padding:96px 0;position:relative;border-top:1px solid var(--line)}
+  .sec-tag{
+    display:inline-flex;align-items:center;gap:14px;
+    font-family:var(--mono);font-size:11.5px;color:var(--sepia);
+    letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px;
+  }
+  .sec-tag::before{
+    content:"";width:14px;height:14px;border:1px solid var(--sepia);
+    display:inline-block;position:relative;
+  }
+  .sec-tag::after{
+    content:"";width:40px;height:1px;background:var(--sepia);
+  }
+  .sec-num{
+    font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.14em;
+  }
+  h2{
+    font-family:var(--mono);font-weight:700;
+    font-size:clamp(24px,3.2vw,36px);letter-spacing:.005em;line-height:1.15;color:var(--ink);
+    margin-bottom:24px;max-width:64ch;text-transform:uppercase;
+  }
+  h2 .a{color:var(--sepia)}
+  .sec-body{
+    color:var(--muted);font-size:15.5px;line-height:1.7;max-width:70ch;
+    margin-bottom:16px;
+  }
+  .sec-body b{color:var(--ink);font-weight:600}
+  .sec-body .em{color:var(--sepia);font-weight:500}
+
+  /* substats */
+  .substats{
+    margin:40px 0 44px;padding:20px 0;position:relative;
+    border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  }
+  .substats > div{padding:0 24px;border-right:1px solid var(--line);position:relative}
+  .substats > div:last-child{border-right:none}
+  .substats > div:first-child{padding-left:0}
+  .substats > div:last-child{padding-right:0}
+  .substats .v{font-family:var(--mono);font-weight:700;font-size:38px;color:var(--ink);line-height:1;letter-spacing:-.005em;font-variant-numeric:tabular-nums}
+  .substats .l{margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+
+  /* ledger - as a schedule table */
+  .schedule-title{
+    display:flex;align-items:baseline;gap:14px;margin:44px 0 12px;
+    font-family:var(--mono);font-size:11px;color:var(--sepia);
+    letter-spacing:.16em;text-transform:uppercase;
+  }
+  .schedule-title span{color:var(--ink)}
+  .schedule-title small{color:var(--muted);font-size:10.5px;letter-spacing:.1em}
+  .schedule-title::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .schedule{
+    border:1px solid var(--line-strong);background:rgba(14,38,70,.4);
+  }
+  .schedule-head{
+    display:grid;grid-template-columns:110px 1fr 160px 40px;gap:16px;
+    padding:10px 20px;border-bottom:1px solid var(--line-strong);
+    font-family:var(--mono);font-size:10px;color:var(--sepia);
+    letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(23,60,105,.5);
+  }
+  .schedule-head .rc{text-align:right}
+  .schedule-head .idx{text-align:center}
+  .schedule .row{
+    display:grid;grid-template-columns:110px 1fr 160px 40px;gap:16px;
+    padding:14px 20px;border-bottom:1px solid var(--line);
+    align-items:baseline;
+  }
+  .schedule .row:last-child{border-bottom:none}
+  .schedule .row:hover{background:rgba(242,200,121,.06)}
+  .schedule .row .d{font-family:var(--mono);font-size:13px;color:var(--sepia);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  .schedule .row .d small{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:3px}
+  .schedule .row .t{font-family:var(--sans);font-size:15px;color:var(--ink);font-weight:500;line-height:1.4}
+  .schedule .row .t small{display:block;font-family:var(--mono);color:var(--muted);font-weight:400;font-size:11.5px;margin-top:4px}
+  .schedule .row .topic{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;text-align:right}
+  .schedule .row .idx{font-family:var(--mono);font-size:11px;color:var(--sepia);text-align:center;font-weight:500}
+  .schedule .row.nodate{grid-template-columns:1fr 160px 40px}
+
+  /* series line */
+  .series{
+    margin-top:24px;padding:20px 24px;
+    border:1px dashed var(--line-strong);background:rgba(14,38,70,.3);
+    display:grid;grid-template-columns:110px 1fr 160px;gap:24px;align-items:center;
+  }
+  .series .n{font-family:var(--mono);font-weight:700;font-size:34px;color:var(--sepia);line-height:1;letter-spacing:-.005em}
+  .series .n small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);font-weight:400;margin-top:6px;letter-spacing:.12em;text-transform:uppercase}
+  .series .t{font-size:15px;color:var(--ink)}
+  .series .t small{display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:4px}
+  .series .topic{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;text-align:right}
+
+  /* revision notes / callouts */
+  .revision-note{
+    margin-top:40px;position:relative;padding:24px 28px 24px 60px;
+    background:rgba(232,240,245,.04);border:1px solid var(--line);
+  }
+  .revision-note::before{
+    content:"REV";position:absolute;left:16px;top:24px;
+    font-family:var(--mono);font-size:10px;color:var(--revision);
+    letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+    padding:3px 7px;border:1px solid var(--revision);
+  }
+  .revision-note.note-a::before{content:"A";color:var(--sepia);border-color:var(--sepia)}
+  .revision-note.note-b::before{content:"B";color:var(--sepia);border-color:var(--sepia)}
+  .revision-note h4{font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.02em;margin-bottom:8px}
+  .revision-note p{color:var(--muted);font-size:14.5px;line-height:1.65;max-width:74ch}
+  .revision-note p b{color:var(--ink);font-weight:500}
+
+  /* ownership - dimension callout style */
+  .ownership{
+    margin-top:32px;padding:20px 24px;
+    border:1px solid var(--line-strong);background:rgba(14,38,70,.4);
+    position:relative;
+  }
+  .ownership::before{
+    content:"SCOPE OF WORK · PER EVENT";
+    position:absolute;top:-9px;left:20px;background:var(--paper);padding:0 10px;
+    font-family:var(--mono);font-size:10px;color:var(--sepia);letter-spacing:.14em;text-transform:uppercase;
+  }
+  .ownership-list{display:flex;flex-wrap:wrap;gap:10px 32px;font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.02em}
+  .ownership-list span{position:relative;padding-left:20px}
+  .ownership-list span::before{
+    content:"→";position:absolute;left:0;top:0;color:var(--sepia);font-weight:700;
+  }
+
+  /* featured piece - as an elevation drawing */
+  .elevation{
+    margin-top:48px;padding:36px 40px 40px;
+    border:1px solid var(--sepia);background:rgba(242,200,121,.04);
+    position:relative;
+  }
+  .elevation::before{
+    content:"DWG-02 · FEATURED ELEVATION";
+    position:absolute;top:-9px;left:24px;background:var(--paper);
+    padding:0 12px;font-family:var(--mono);font-size:10px;color:var(--sepia);
+    letter-spacing:.14em;text-transform:uppercase;
+  }
+  .elevation-label{
+    font-family:var(--mono);font-size:11px;color:var(--sepia);letter-spacing:.14em;
+    text-transform:uppercase;margin-bottom:12px;
+  }
+  .elevation h3{
+    font-family:var(--mono);font-weight:700;font-size:24px;color:var(--ink);
+    letter-spacing:.005em;line-height:1.2;margin-bottom:16px;text-transform:uppercase;max-width:22ch;
+  }
+  .elevation p{color:var(--muted);font-size:14.5px;line-height:1.68;max-width:72ch}
+  .elevation .out{
+    display:inline-flex;align-items:center;gap:12px;margin-top:20px;
+    padding:10px 18px;background:var(--sepia);color:var(--paper);
+    font-family:var(--mono);font-size:12px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.12em;
+  }
+  .elevation .out::before{content:"✓";font-weight:900;font-size:14px}
+
+  /* compact two-up */
+  .compact-two{
+    margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:0;
+    border:1px solid var(--line-strong);background:rgba(14,38,70,.4);
+  }
+  .compact-two > div{padding:24px 28px;position:relative}
+  .compact-two > div:first-child{border-right:1px solid var(--line)}
+  .compact-two .k{
+    font-family:var(--mono);font-size:10.5px;color:var(--sepia);
+    letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;
+  }
+  .compact-two h4{
+    font-family:var(--mono);font-size:15px;color:var(--ink);font-weight:500;
+    letter-spacing:.005em;line-height:1.4;margin-bottom:8px;text-transform:uppercase;
+  }
+  .compact-two p{color:var(--muted);font-size:13.5px;line-height:1.6;font-family:var(--sans)}
+
+  /* partner elevation grid */
+  .partners{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:32px;
+  }
+  .ptile{
+    padding:36px 28px 28px;position:relative;
+    border:1px solid var(--line-strong);background:rgba(14,38,70,.4);
+    min-height:180px;display:flex;flex-direction:column;justify-content:space-between;
+    transition:border-color .25s,background .25s;
+  }
+  .ptile::before{
+    content:"";position:absolute;top:12px;left:12px;width:12px;height:12px;
+    border-top:1px solid var(--sepia);border-left:1px solid var(--sepia);
+  }
+  .ptile::after{
+    content:"";position:absolute;bottom:12px;right:12px;width:12px;height:12px;
+    border-bottom:1px solid var(--sepia);border-right:1px solid var(--sepia);
+  }
+  .ptile:hover{border-color:var(--sepia);background:rgba(242,200,121,.06)}
+  .ptile .pname{
+    font-family:var(--mono);font-weight:700;font-size:26px;color:var(--ink);
+    letter-spacing:.01em;line-height:1.15;text-transform:uppercase;
+  }
+  .ptile .pmeta{
+    margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:.08em;text-transform:uppercase;
+  }
+  .ptile .dim{
+    position:absolute;right:16px;top:16px;
+    font-family:var(--mono);font-size:10px;color:var(--sepia);
+    letter-spacing:.1em;
+  }
+
+  /* onboarding flagship */
+  .flagship{
+    margin-top:24px;padding:36px 40px;position:relative;
+    border:2px solid var(--sepia);background:rgba(242,200,121,.05);
+  }
+  .flagship::before{
+    content:"DWG-03 · FLAGSHIP · DELIVERED ON TIME";
+    position:absolute;top:-9px;left:24px;background:var(--paper);padding:0 12px;
+    font-family:var(--mono);font-size:10px;color:var(--sepia);letter-spacing:.14em;text-transform:uppercase;
+  }
+  .flagship-inner{display:grid;grid-template-columns:220px 1fr;gap:32px}
+  .flagship .k{
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:.12em;text-transform:uppercase;line-height:1.7;
+  }
+  .flagship .k b{display:block;color:var(--sepia);font-weight:500;margin-top:6px}
+  .flagship h3{
+    font-family:var(--mono);font-weight:700;font-size:24px;color:var(--ink);
+    letter-spacing:.005em;line-height:1.2;margin-bottom:18px;text-transform:uppercase;max-width:22ch;
+  }
+  .flagship p{color:var(--muted);font-size:14.5px;line-height:1.68;max-width:70ch;margin-bottom:12px}
+  .flagship p b{color:var(--ink);font-weight:500}
+  .flagship .status{
+    display:inline-flex;align-items:center;gap:10px;margin-top:12px;
+    padding:8px 16px;background:var(--sepia);color:var(--paper);
+    font-family:var(--mono);font-size:11.5px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.14em;
+  }
+  .flagship .status::before{content:"●";font-size:10px}
+
+  /* project schedule */
+  .proj-list{
+    margin-top:24px;border:1px solid var(--line-strong);background:rgba(14,38,70,.4);
+  }
+  .proj{
+    display:grid;grid-template-columns:60px 200px 1fr auto;gap:20px;align-items:baseline;
+    padding:22px 24px;border-bottom:1px solid var(--line);
+  }
+  .proj:last-child{border-bottom:none}
+  .proj .idx{
+    font-family:var(--mono);font-size:11px;color:var(--sepia);letter-spacing:.12em;font-weight:500;
+    padding-top:2px;
+  }
+  .proj .k{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;line-height:1.6}
+  .proj .k b{display:block;color:var(--ink);font-weight:500;margin-top:4px}
+  .proj h4{font-family:var(--mono);font-size:15px;color:var(--ink);font-weight:500;letter-spacing:.005em;line-height:1.4;margin-bottom:6px;text-transform:uppercase}
+  .proj p{color:var(--muted);font-size:13.5px;line-height:1.6;max-width:60ch;font-family:var(--sans)}
+  .proj .status{
+    font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;
+    padding:6px 12px;white-space:nowrap;border:1px solid;
+  }
+  .st-review{color:var(--muted);border-color:var(--muted)}
+  .st-hold{color:var(--sepia);border-color:var(--sepia)}
+  .st-ext{color:var(--muted);border-color:var(--line-strong)}
+
+  /* ============ FOOTER TITLE BLOCK ============ */
+  footer{margin-top:24px;padding:0 0 24px}
+  main > section:last-of-type{padding-bottom:48px}
+  .footer-block{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line-strong);background:var(--paper-2);
+  }
+  .fb{padding:16px 20px;border-right:1px solid var(--line);border-top:1px solid var(--line)}
+  /* Row 1: fb.wide spans 2 + 2 more = 4 cols; remove top border for first 3 items */
+  .fb:nth-child(1),.fb:nth-child(2),.fb:nth-child(3){border-top:none}
+  /* No right border on last cell in each row */
+  .fb:nth-child(3),.fb:nth-child(7){border-right:none}
+  .fb .k{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px}
+  .fb .v{font-family:var(--mono);font-size:12.5px;color:var(--ink);letter-spacing:.02em;line-height:1.3}
+  .fb .v.big{font-size:14px;font-weight:500}
+  .fb .v.accent{color:var(--sepia)}
+  .fb.wide{grid-column:span 2}
+
+  .reveal{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.9,.3,1)}
+  .reveal.on{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+    *{animation:none !important}
+  }
+
+  @media (max-width:960px){
+    .wrap{padding:0 24px}
+    .crosshair{display:none}
+    .titleblock{grid-template-columns:1fr 1fr;font-size:10px}
+    .titleblock > div{padding:8px 12px}
+    .tb-scale,.tb-rev{width:auto}
+    .dim-grid{grid-template-columns:repeat(2,1fr);gap:20px 0}
+    .dim-cell:not(:last-child){padding-right:16px}
+    .dim-cell:not(:first-child){padding-left:16px}
+    .dim-cell:nth-child(2)::after{display:none}
+    .substats{grid-template-columns:repeat(2,1fr);gap:20px 0}
+    .substats > div:nth-child(2){border-right:none}
+    .substats > div{padding:0 16px !important}
+    .flagship-inner{grid-template-columns:1fr;gap:16px}
+    .compact-two{grid-template-columns:1fr}
+    .compact-two > div:first-child{border-right:none;border-bottom:1px solid var(--line)}
+    .partners{grid-template-columns:1fr}
+    .proj{grid-template-columns:40px 1fr;gap:12px}
+    .proj .k{grid-column:2;font-size:10px;margin-bottom:6px}
+    .proj .status{grid-column:2;justify-self:start;margin-top:8px}
+    .footer-block{grid-template-columns:repeat(2,1fr)}
+    .fb{border-right:1px solid var(--line) !important;border-top:1px solid var(--line) !important}
+    .fb:nth-child(2n){border-right:none !important}
+    .fb.wide{grid-column:span 2}
+    .schedule-head,.schedule .row{grid-template-columns:80px 1fr auto;gap:10px;font-size:11px}
+    .schedule-head .idx,.schedule .row .idx{display:none}
+    .schedule .row.nodate{grid-template-columns:1fr auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="crosshair tl"></div><div class="crosshair tr"></div>
+<div class="crosshair bl"></div><div class="crosshair br"></div>
+
+<header>
+  <div class="wrap">
+    <div class="titleblock">
+      <div><div class="k">Employee ID</div><div class="v"><b>23</b></div></div>
+      <div><div class="k">Name</div><div class="v">Abhishek Pathania</div></div>
+      <div><div class="k">Period</div><div class="v">H1 2026 · Jan — Jun</div></div>
+      <div class="tb-rev"><div class="k">Rev</div><div class="v">FINAL</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero" id="top">
+    <div class="drawing-label">Elevation · Half-year, Jan 01 → Jun 30, 2026</div>
+    <h1>Abhishek Pathania,<br><span class="a">Solution Architect.</span></h1>
+    <div class="hero-caption">Employee ID · <b>23</b> &nbsp;·&nbsp; Department · <b>Cloudlabs Customer Success</b> &nbsp;·&nbsp; Discipline · <b>Partner Enablement</b> &nbsp;·&nbsp; Issued · <b>July 2026</b></div>
+    <p class="thesis">
+      Six months of hands-on partner enablement, customer-facing delivery, and program leadership. <b>37 events across the half</b> — 9 proctored (Pax8 workshop series), 12 delivered end-to-end, 8 supported (GitHub Copilot SDLC + dedicated on-call), and 8 in-person events prepared. Alongside, ten onboarding initiatives led, a public-sector GCC unlock, and a fleet-wide MS Build lab-update program.
+    </p>
+
+    <div class="dim-strip reveal">
+      <div class="dim-grid">
+        <div class="dim-cell">
+          <div class="dim-arrow"><div class="line"></div><div class="num">01</div></div>
+          <div class="val">09</div>
+          <div class="lab">Proctored<br>Pax8 workshop series</div>
+        </div>
+        <div class="dim-cell">
+          <div class="dim-arrow"><div class="line"></div><div class="num">02</div></div>
+          <div class="val">12</div>
+          <div class="lab">Delivered<br>end-to-end</div>
+        </div>
+        <div class="dim-cell">
+          <div class="dim-arrow"><div class="line"></div><div class="num">03</div></div>
+          <div class="val">08</div>
+          <div class="lab">Supported<br>SDLC + on-call</div>
+        </div>
+        <div class="dim-cell">
+          <div class="dim-arrow"><div class="line"></div><div class="num">04</div></div>
+          <div class="val">08</div>
+          <div class="lab">In-person events<br>prepared</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scale-drawing reveal">
+      <div class="sd-legend">
+        <span>9 dated Pax8 · 1 dated in-person · plus 27 across the half (SDLC · Ingram · AVS · in-person · coverage · webinar · on-call)</span>
+        <span>Hover a mark</span>
+      </div>
+      <div class="ruler">
+        <div class="ruler-base"></div>
+        <div class="ruler-tick-major" style="left:0%"></div>
+        <div class="ruler-tick-major" style="left:16.67%"></div>
+        <div class="ruler-tick-major" style="left:33.33%"></div>
+        <div class="ruler-tick-major" style="left:50%"></div>
+        <div class="ruler-tick-major" style="left:66.67%"></div>
+        <div class="ruler-tick-major" style="left:83.33%"></div>
+        <div class="ruler-tick-major" style="left:100%"></div>
+        <div class="ruler-month" style="left:8.3%">JAN</div>
+        <div class="ruler-month" style="left:25%">FEB</div>
+        <div class="ruler-month" style="left:41.7%">MAR</div>
+        <div class="ruler-month" style="left:58.3%">APR</div>
+        <div class="ruler-month" style="left:75%">MAY</div>
+        <div class="ruler-month" style="left:91.7%">JUN</div>
+        <div class="event-mark" style="left:11.67%"><div class="em-callout"><b>FABRIC LAKEHOUSES</b><span>Jan 22 · Pax8</span></div></div>
+        <div class="event-mark" style="left:15.56%"><div class="em-callout"><b>AZURE AI AGENTS</b><span>Jan 29 · Pax8</span></div></div>
+        <div class="event-mark" style="left:19.44%"><div class="em-callout"><b>ARC + DEFENDER</b><span>Feb 05 · Pax8</span></div></div>
+        <div class="event-mark" style="left:27.22%"><div class="em-callout"><b>FABRIC LAKEHOUSES</b><span>Feb 19 · Pax8</span></div></div>
+        <div class="event-mark" style="left:35%"><div class="em-callout"><b>AZURE AI AGENTS</b><span>Mar 05 · Pax8</span></div></div>
+        <div class="event-mark ip" style="left:45.56%"><div class="em-callout"><b>FABRIC ANALYTICS</b><span>Mar 24 · Belgium · IN-PERSON</span></div></div>
+        <div class="event-mark" style="left:54.44%"><div class="em-callout"><b>FABRIC ANALYTICS</b><span>Apr 09 · Pax8</span></div></div>
+        <div class="event-mark" style="left:65.56%"><div class="em-callout"><b>DEFENDER FOR CLOUD</b><span>Apr 29 · Pax8</span></div></div>
+        <div class="event-mark" style="left:68.89%"><div class="em-callout"><b>FABRIC ANALYTICS</b><span>May 05 · Pax8</span></div></div>
+        <div class="event-mark" style="left:70.5%"><div class="em-callout"><b>AZURE AI AGENTS</b><span>May 07 · Pax8</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 01 · DELIVERY ============ -->
+  <section id="delivery">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 01 · Delivery Log</div>
+      <h2 class="reveal">Proctored, delivered and supported <span class="a">across four partner programs.</span></h2>
+      <p class="sec-body reveal">
+        Delivery this half spanned <span class="em">in-person and virtual formats across four partner programs</span>: Pax8, Microsoft, TD SYNNEX, and Ingram Micro. The scope broke into three distinct roles.
+      </p>
+      <p class="sec-body reveal">
+        <b>Proctored (9):</b> the Pax8 partner enablement series — end-to-end ownership including building and presenting the technical deck, then guiding partners through the hands-on lab. A trainer role, with substantial preparation behind every session.
+      </p>
+      <p class="sec-body reveal">
+        <b>Delivered end-to-end (12):</b> 4 in the Ingram Micro program (including a French-language delivery), 4 in the AVS partner series (detailed in Sheet 03), 3 Defender for Cloud events covering a teammate's Microsoft portfolio, and 1 Pax8 webinar.
+      </p>
+      <p class="sec-body reveal">
+        <b>Supported (8):</b> 4 <b>Mastering GitHub Copilot Across the SDLC</b> labs on lab-support scope (no deck ownership), and 4 dedicated on-call events for Foundry and Copilot workshops (detailed in Sheet 06). The in-person deliveries for Microsoft (Malaysia), TD SYNNEX, Ingram Micro (Belgium), and Pax8 are counted and detailed separately in Sheet 02.
+      </p>
+
+      <div class="substats reveal">
+        <div><div class="v">09</div><div class="l">Proctored · Pax8</div></div>
+        <div><div class="v">12</div><div class="l">Delivered end-to-end</div></div>
+        <div><div class="v">04</div><div class="l">SDLC lab support</div></div>
+        <div><div class="v">03</div><div class="l">Team coverage</div></div>
+      </div>
+
+      <div class="schedule-title reveal">Schedule <span>A · Pax8 Series · Proctored</span> <small>· 9 sessions</small></div>
+      <div class="schedule reveal">
+        <div class="schedule-head"><span>Date</span><span>Session</span><span class="rc">Topic</span><span class="idx">#</span></div>
+        <div class="row"><div class="d">Jan 22<small>Thu · 2026</small></div><div class="t">Get Data into Fabric Lakehouses<small>Pax8 · United States</small></div><div class="topic">Fabric · Data</div><div class="idx">A01</div></div>
+        <div class="row"><div class="d">Jan 29<small>Thu · 2026</small></div><div class="t">Microsoft Azure AI Agents Hands-On Workshop<small>Pax8 · United States</small></div><div class="topic">Azure · AI</div><div class="idx">A02</div></div>
+        <div class="row"><div class="d">Feb 05<small>Thu · 2026</small></div><div class="t">Secure Windows Servers with Azure Arc + Defender<small>Pax8 · United States</small></div><div class="topic">Security</div><div class="idx">A03</div></div>
+        <div class="row"><div class="d">Feb 19<small>Thu · 2026</small></div><div class="t">Get Data into Fabric Lakehouses<small>Pax8 · United States</small></div><div class="topic">Fabric · Data</div><div class="idx">A04</div></div>
+        <div class="row"><div class="d">Mar 05<small>Thu · 2026</small></div><div class="t">Microsoft Azure AI Agents Hands-On Workshop<small>Pax8 · United States</small></div><div class="topic">Azure · AI</div><div class="idx">A05</div></div>
+        <div class="row"><div class="d">Apr 09<small>Thu · 2026</small></div><div class="t">Cloud Scale Analytics with Microsoft Fabric<small>Pax8 · United States</small></div><div class="topic">Fabric · Data</div><div class="idx">A06</div></div>
+        <div class="row"><div class="d">Apr 29<small>Wed · 2026</small></div><div class="t">Microsoft Defender for Cloud Workshop<small>Pax8 · United States</small></div><div class="topic">Security</div><div class="idx">A07</div></div>
+        <div class="row"><div class="d">May 05<small>Tue · 2026</small></div><div class="t">Cloud Scale Analytics with Microsoft Fabric<small>Pax8 · United States</small></div><div class="topic">Fabric · Data</div><div class="idx">A08</div></div>
+        <div class="row"><div class="d">May 07<small>Thu · 2026</small></div><div class="t">Microsoft Azure AI Agents Hands-On Workshop<small>Pax8 · United States</small></div><div class="topic">Azure · AI</div><div class="idx">A09</div></div>
+      </div>
+
+      <div class="schedule-title reveal">Schedule <span>B · GitHub Copilot Series · Supported</span> <small>· lab support · 4 sessions</small></div>
+      <div class="series reveal">
+        <div class="n">×4<small>Sessions</small></div>
+        <div class="t">Mastering GitHub Copilot Across the SDLC<small>Hands-on lab support · delivered across the half</small></div>
+        <div class="topic mono" style="text-align:right;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase">Copilot · Dev</div>
+      </div>
+
+      <div class="schedule-title reveal">Schedule <span>C · Ingram Micro Program · Delivered</span> <small>· 4 virtual runs</small></div>
+      <div class="schedule reveal">
+        <div class="schedule-head"><span>&nbsp;</span><span>Session</span><span class="rc">Topic</span><span class="idx">#</span></div>
+        <div class="row nodate"><div class="t">Microsoft Fabric · Fabric Analyst in a Day<small>Virtual · delivered in French</small></div><div class="topic">Fabric · Data</div><div class="idx">C01</div></div>
+        <div class="row nodate"><div class="t">Unified Security + Compliance with Defender XDR + Purview<small>Virtual · ×3 · newly onboarded content</small></div><div class="topic">Security</div><div class="idx">C02</div></div>
+      </div>
+
+      <div class="schedule-title reveal">Schedule <span>D · Team Coverage · Delivered</span> <small>· 3 events</small></div>
+      <div class="series reveal">
+        <div class="n">×3<small>Sessions</small></div>
+        <div class="t">Microsoft · Defender for Cloud — covered Priyo's events during a teammate's leave<small>Customer + trainer alignment · fast turnaround on PPT and lab-guide changes</small></div>
+        <div class="topic mono" style="text-align:right;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase">Security</div>
+      </div>
+
+      <div class="schedule-title reveal">Schedule <span>E · Webinar · Delivered</span> <small>· 1 session</small></div>
+      <div class="series reveal">
+        <div class="n">×1<small>Session</small></div>
+        <div class="t">Pax8 · 60-minute webinar<small>Deck authored from customer's agenda · strong feedback</small></div>
+        <div class="topic mono" style="text-align:right;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase">Webinar</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 · IN-PERSON ============ -->
+  <section id="inperson">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 02 · Field Deployments</div>
+      <h2 class="reveal">08 in-person events prepared end-to-end, <span class="a">across 4 partner organizations.</span></h2>
+      <p class="sec-body reveal">
+        Beyond the virtual series, I owned readiness for <span class="em">eight in-person enablement events</span> spanning <b>Pax8, Microsoft, TD SYNNEX, and Ingram Micro</b>. Running all communications and every customer and trainer alignment call, and carrying PPT and lab readiness through to event day.
+      </p>
+      <p class="sec-body reveal">
+        The recurring challenge: in-person slots run 1 to 2 hours, while the underlying labs are built for 4 to 8. Each event meant re-engineering the content, trimming full-day material down to its hands-on core without losing the learning outcome.
+      </p>
+
+      <div class="ownership reveal">
+        <div class="ownership-list">
+          <span>Communications</span>
+          <span>Customer alignment</span>
+          <span>Trainer alignment</span>
+          <span>PPT readiness</span>
+          <span>Lab readiness</span>
+          <span>Content trim + QA</span>
+        </div>
+      </div>
+
+      <div class="substats reveal">
+        <div><div class="v">08</div><div class="l">In-person prepared</div></div>
+        <div><div class="v">04</div><div class="l">Partner orgs</div></div>
+        <div><div class="v">8h→1h</div><div class="l">Labs re-engineered</div></div>
+        <div><div class="v">100%</div><div class="l">Event readiness</div></div>
+      </div>
+
+      <div class="schedule-title reveal">Schedule <span>F · Pax8 In-Person</span> <small>· 5 events</small></div>
+      <div class="schedule reveal">
+        <div class="schedule-head"><span>&nbsp;</span><span>Session</span><span class="rc">Topic</span><span class="idx">#</span></div>
+        <div class="row nodate"><div class="t">Microsoft Defender for Cloud · Security Posture Management<small>Planned with customer + trainer · trimmed to slot</small></div><div class="topic">Security</div><div class="idx">F01</div></div>
+        <div class="row nodate"><div class="t">Microsoft Copilot for M365<small>Planned with customer + trainer · trimmed to slot</small></div><div class="topic">M365 · Copilot</div><div class="idx">F02</div></div>
+        <div class="row nodate"><div class="t">Data Security with Microsoft Purview<small>Planned with customer + trainer · trimmed to slot</small></div><div class="topic">Purview</div><div class="idx">F03</div></div>
+        <div class="row nodate"><div class="t">Infrastructure Migration<small>Planned with customer + trainer · trimmed to slot</small></div><div class="topic">Azure · Infra</div><div class="idx">F04</div></div>
+        <div class="row nodate"><div class="t">Fabric Analyst in a Day<small>Planned with customer + trainer · trimmed to slot</small></div><div class="topic">Fabric · Data</div><div class="idx">F05</div></div>
+      </div>
+
+      <div class="elevation reveal">
+        <div class="elevation-label">Featured · Microsoft · Malaysia · On-Site</div>
+        <h3>Develop Agent Systems using Microsoft Foundry.</h3>
+        <p>Owned content readiness for an on-site Microsoft event in Malaysia, delivered with an on-site proctor (Amit M) and trainer (Ziggy). Personally validated the lab end-to-end, surfaced content issues ahead of the event, planned and revised the content version in step with the trainer's suggestions, and enhanced lab quality myself to guarantee a smooth participant experience.</p>
+        <div class="out">Delivered clean · no issues</div>
+      </div>
+
+      <div class="compact-two reveal">
+        <div>
+          <div class="k">TD SYNNEX · Partner Event</div>
+          <h4>Get Started with OpenAI + Natural Language Solutions.</h4>
+          <p>Full readiness ownership. All communications, customer and trainer alignment calls, PPT and lab preparation through to delivery.</p>
+        </div>
+        <div>
+          <div class="k">Ingram Micro · Belgium · Mar 24</div>
+          <h4>Cloud Scale Analytics with Microsoft Fabric.</h4>
+          <p>End-to-end readiness and alignment with the customer and trainer (Enea). The event ran smoothly, start to finish.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 · AVS ============ -->
+  <section id="avs">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 03 · AVS Program</div>
+      <h2 class="reveal">04-event <span class="a">Azure VMware Solution</span> series delivered for enterprise partners.</h2>
+      <p class="sec-body reveal">
+        Delivered a series of <span class="em">four virtual, multi-day Azure VMware Solution events</span> for enterprise partners. Theory sessions and click-through demos across each engagement, with PPT decks, customer-trainer alignment, quiz design, and multi-day session flow all owned end-to-end.
+      </p>
+
+      <div class="ownership reveal">
+        <div class="ownership-list">
+          <span>PPT decks</span>
+          <span>Customer-trainer alignment</span>
+          <span>Quiz design + delivery</span>
+          <span>Multi-day session flow</span>
+        </div>
+      </div>
+
+      <div class="partners reveal">
+        <div class="ptile"><div class="dim">G01</div><div class="pname">DXC<br>Technology</div><div class="pmeta">AVS · Multi-day · Virtual</div></div>
+        <div class="ptile"><div class="dim">G02</div><div class="pname">Tech<br>Mahindra</div><div class="pmeta">AVS · Multi-day · Virtual</div></div>
+        <div class="ptile"><div class="dim">G03</div><div class="pname">LTI<br>Mindtree</div><div class="pmeta">AVS · Multi-day · Virtual</div></div>
+        <div class="ptile"><div class="dim">G04</div><div class="pname">Wipro</div><div class="pmeta">AVS · Multi-day · Virtual</div></div>
+      </div>
+
+      <div class="revision-note reveal" style="margin-top:40px">
+        <h4>Program Scope</h4>
+        <p><b>The AVS series was planned to run longer, but an upstream change in program funding cut the roadmap short mid-half.</b> Within the funded window, all four scheduled partner events were delivered end-to-end: theory, demos, and quizzes included.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 · ONBOARDINGS ============ -->
+  <section id="onboarding">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 04 · Content Onboardings</div>
+      <h2 class="reveal">10 onboarding initiatives led · <span class="a">first TOC through catalog.</span></h2>
+      <p class="sec-body reveal">
+        Led lab onboarding across the half: scoping new content, upgrading existing labs, and carrying builds from <span class="em">first TOC through customer sign-off</span>. Each initiative below was driven end-to-end. Requirements, stakeholder alignment, guide authoring, and team coordination.
+      </p>
+
+      <div class="substats reveal">
+        <div><div class="v">10</div><div class="l">Initiatives led</div></div>
+        <div><div class="v">04</div><div class="l">MS Security TOCs</div></div>
+        <div><div class="v">×3</div><div class="l">Newest lab runs</div></div>
+        <div><div class="v">01</div><div class="l">Flagship shipped</div></div>
+      </div>
+
+      <div class="flagship reveal">
+        <div class="flagship-inner">
+          <div class="k">Client · Ingram Micro<br>Type · New content<br><b>Delivered on time</b></div>
+          <div>
+            <h3>Unified Security + Compliance · Defender XDR + Purview.</h3>
+            <p>Onboarded brand-new security content against a delivery date the customer couldn't move. With rescheduling off the table, I compressed the plan, rallied the team, and landed the onboarding on schedule. The lab has already been delivered three times.</p>
+            <p><b>Post-delivery follow-through.</b> Two experience issues surfaced in early runs: a license assignment that upstream validation had marked healthy (assigned and corrected during the event), and by-design result delays in the Purview and Defender portals. For the latter I introduced a pre-configuration pattern: staging the slow, time-bound configurations in advance, so participants perform every step hands-on and still see completed results immediately.</p>
+            <div class="status">Delivered · 3 runs live</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-list reveal">
+        <div class="proj">
+          <div class="idx">H01</div>
+          <div class="k">Microsoft Security<br><b>4 TOCs</b></div>
+          <div>
+            <h4>Microsoft Sentinel + Microsoft Purview.</h4>
+            <p>Led a four-lab Microsoft Security onboarding: 1 Sentinel TOC and 3 Purview TOCs. Ran the requirements deep-dive with the customer, authored each TOC, walked them through it, revised on feedback, and secured customer sign-off. Coordinated with the accounts team on effort and cost, and shaped delivery around the realities of the security portals: preview features that need Microsoft-side enablement, data seeding delays that can't be automated, manual steps that stay manual. Sentinel on hold pending accounts / customer; Purview 1 in progress, 2 in pipeline.</p>
+          </div>
+          <div class="status st-review">3 in flight · 1 on hold</div>
+        </div>
+        <div class="proj">
+          <div class="idx">H02</div>
+          <div class="k">Type · Lab upgrade<br><b>Complete our side</b></div>
+          <div>
+            <h4>Azure AI Agents · Microsoft Agent Framework.</h4>
+            <p>Led the upgrade end-to-end and walked the customer through existing and new content on a live call. Complete our side; on customer sign-off it moves to the catalog / RMP portal.</p>
+          </div>
+          <div class="status st-review">In customer review</div>
+        </div>
+        <div class="proj">
+          <div class="idx">H03</div>
+          <div class="k">Custom tech · Sage<br><b>Complete</b></div>
+          <div>
+            <h4>Azure Game Day.</h4>
+            <p>Reviewed the requirements, proposed a high-level TOC and secured customer sign-off, then led the team through the detailed TOC and the full onboarding build.</p>
+          </div>
+          <div class="status st-review">Awaiting feedback</div>
+        </div>
+        <div class="proj">
+          <div class="idx">H04</div>
+          <div class="k">Partner content<br><b>Databricks</b></div>
+          <div>
+            <h4>Databricks Onboarding.</h4>
+            <p>Ran early exploration from initial inputs and confirmed the full provisioning and setup scope on our side. The lab guide builds on Databricks' pre-built content, which required legal approvals (now secured). Databricks is refreshing its repos and guides; the build resumes the moment updated content lands.</p>
+          </div>
+          <div class="status st-ext">Awaiting refresh</div>
+        </div>
+        <div class="proj">
+          <div class="idx">H05</div>
+          <div class="k">TOC · DXC<br><b>Unfunded</b></div>
+          <div>
+            <h4>Microsoft System Center Data Protection Manager.</h4>
+            <p>Prepared the TOC for one of the half's most complex asks: nested virtualization modelling DXC's physical-server estate ahead of an Azure migration. With partner budget at zero, I re-engaged the accounts team to explore a lean, optimized delivery; the engagement closed unfunded, with the TOC ready if it reopens.</p>
+          </div>
+          <div class="status st-ext">TOC · unfunded</div>
+        </div>
+        <div class="proj">
+          <div class="idx">H06</div>
+          <div class="k">MS Innovation · Day Zero<br><b>V1 + V2</b></div>
+          <div>
+            <h4>Agentic AI + Agentic AI with MCP Servers.</h4>
+            <p>Built a two-guide model for delivery on the customer's own tenant: a tenant-readiness guide covering permissions and quotas, plus the Day Zero event guide, authored for both lab versions. Drove multiple follow-ups and offered flexible cross-timezone connects for the stakeholder walkthrough and sign-off; the customer subsequently placed the project on hold. Now reconnected with the PMO on lab titles and RMP addition.</p>
+          </div>
+          <div class="status st-hold">On hold · PMO</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 · GCC ============ -->
+  <section id="gcc">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 05 · Public Sector · GCC</div>
+      <h2 class="reveal">GCC licenses secured · <span class="a">an outcome we couldn't land last year.</span></h2>
+      <p class="sec-body reveal">
+        Enabled <span class="em">GCC licenses for Public Sector Hacks</span>, closing out a gap from the previous cycle. In prior attempts the team was unable to secure GCC in time; this half I worked the process end-to-end and got the licenses in place.
+      </p>
+      <p class="sec-body reveal">
+        Aligned with <b>Carahsoft</b> on SLAs and escalation paths as a safety net, giving the program a clear route to unblock if licenses aren't secured on time in future cycles.
+      </p>
+
+      <div class="elevation reveal">
+        <div class="elevation-label">Year-over-year unlock</div>
+        <h3>From "unable to secure" to "in hand".</h3>
+        <p>Last cycle: GCC licenses could not be secured, and Public Sector Hacks was constrained. This cycle: I drove the license enablement through to completion, and established the Carahsoft SLA and escalation alignment so the same blocker doesn't recur.</p>
+        <div class="out">GCC secured · escalation path in place</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 · PROGRAMS ============ -->
+  <section id="programs">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 06 · Programs + Ad-hoc Support</div>
+      <h2 class="reveal">Train-the-Trainer, a Pax8 webinar <span class="a">and dedicated event support.</span></h2>
+      <p class="sec-body reveal">
+        Beyond scheduled delivery, I picked up <span class="em">program work and ad-hoc support across the half</span>: a Train-the-Trainer for a specialized track, a one-hour Pax8 webinar built from scratch, and dedicated support on four events where I fed insights back to the track owners.
+      </p>
+
+      <div class="compact-two reveal">
+        <div>
+          <div class="k">Train-the-Trainer</div>
+          <h4>Azure HPC Lab.</h4>
+          <p>Delivered a Train-the-Trainer session on the Azure HPC lab. Enabling other trainers to run the track independently.</p>
+        </div>
+        <div>
+          <div class="k">Pax8 · 60-minute webinar</div>
+          <h4>Deck built from the customer's agenda.</h4>
+          <p>Authored the PPT ground-up to the customer's agenda. A tight scope of "too much to cover in an hour" — landed cleanly. Strong feedback, credited in part to a great trainer partnering on delivery. (Counted in Delivery · 25.)</p>
+        </div>
+      </div>
+
+      <div class="revision-note note-a reveal">
+        <h4>Dedicated Event Support · 4 events</h4>
+        <p>Joined as dedicated support on four events across the cycle: a <b>Microsoft Foundry</b> workshop and three <b>GitHub Copilot</b> workshops. Every improvement observation was shared with the relevant track owners (Sanket, Disha) so the fixes compound into future runs.</p>
+      </div>
+
+      <div class="ownership reveal" style="margin-top:32px">
+        <div class="ownership-list">
+          <span>Building Agents with Microsoft Foundry — Hands-On Workshop</span>
+          <span>GitHub Copilot Innovation Workshop — Mastering GitHub Copilot Across the SDLC</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 · PLATFORM ============ -->
+  <section id="platform">
+    <div class="wrap">
+      <div class="sec-tag reveal">Sheet 07 · Platform + Content Operations</div>
+      <h2 class="reveal">MS Build readiness, announcements <span class="a">and catalog reporting.</span></h2>
+      <p class="sec-body reveal">
+        Ran the <span class="em">fleet-wide MS Build lab-update program</span>, kept the public updates page in sync, and worked with the catalog engineering team to close reporting gaps the PMO needs.
+      </p>
+
+      <div class="elevation reveal">
+        <div class="elevation-label">MS Build · Top 25 Tracks</div>
+        <h3>Analysis, assignment and post-Build content updates.</h3>
+        <p>Ran the analysis of the Top 25 tracks impacted by MS Build, assigned owners for both lab and PPT updates, and drove the work through to completion. A round of generic updates ahead of Build itself created some friction, but I ensured the Build-specific updates landed cleanly and the tracks weren't impacted at delivery time.</p>
+        <div class="out">Top 25 refreshed · no Build-day impact</div>
+      </div>
+
+      <div class="compact-two reveal">
+        <div>
+          <div class="k">updates.cloudlabs.ai</div>
+          <h4>Public announcements kept in sync.</h4>
+          <p>Updated the announcement page with the list of labs being refreshed for Build and the high-level services affected. Customers and partners saw a coherent narrative rather than a silent update wave.</p>
+        </div>
+        <div>
+          <div class="k">Catalog · Power BI reports</div>
+          <h4>Reporting gaps closed with Naveen + Alwin.</h4>
+          <p>Partnered with Naveen and Alwin to fix reporting issues in the catalog Power BI reports. Some already in, more shipping next release. Also enabled the <b>Least-25 tracks</b> view the PMO had asked for, alongside the existing Top-25 view.</p>
+        </div>
+      </div>
+
+      <div class="ownership reveal" style="margin-top:32px">
+        <div class="ownership-list">
+          <span>Labs added per month — filter gap flagged</span>
+          <span>Labs removed or hidden — tracking parameter needed</span>
+          <span>Least-25 tracks view — enabled</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-block">
+      <div class="fb wide"><div class="k">Name</div><div class="v big accent">Abhishek Pathania</div><div class="v" style="color:var(--muted);font-size:11px;margin-top:4px">Solution Architect · Cloudlabs Customer Success</div></div>
+      <div class="fb"><div class="k">Employee ID</div><div class="v accent">23</div></div>
+      <div class="fb"><div class="k">Period Covered</div><div class="v">Jan 01 → Jun 30 · 2026</div></div>
+      <div class="fb"><div class="k">Discipline</div><div class="v">Partner Enablement</div></div>
+      <div class="fb"><div class="k">Department</div><div class="v">Customer Success</div></div>
+      <div class="fb"><div class="k">Issued</div><div class="v">Jul 2026</div></div>
+      <div class="fb"><div class="k">Rev</div><div class="v accent">FINAL</div></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)){
+      els.forEach(function(el){ el.classList.add('on'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); }
+      });
+    }, { threshold:.12, rootMargin:'0px 0px -30px 0px' });
+    els.forEach(function(el){ io.observe(el); });
+  })();
+</script>
+</body>
+</html>
